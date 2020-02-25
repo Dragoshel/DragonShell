@@ -96,9 +96,10 @@ void dsh_loop()
     {
         printf("> ");
         line = dsh_read_line();
+        args = dsh_split_line(line);
 
-        printf("%s\n", line);
         free(line);
+        free(args);
     } while (1);
 }
 
