@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 #define DSH_RL_BUFSIZE 1024
 #define DSH_TOK_BUFSIZE 64
@@ -9,7 +11,35 @@
 char **dsh_split_line(char *line);
 char *dsh_read_line();
 int dsh_execute(char **args);
+int dsh_launch(char **args);
 
+int dsh_launch(char **args)
+{
+    pid_t pid, wpid;
+    int status;
+
+    pid = fork();
+    if (pid < 0)
+    {
+        perror("dsh");
+    }
+    else if (pid == 0)
+    {
+        if (execvp(args[0], args) == -1)
+        {
+            perror("dsh");
+        }
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        do
+        {
+            wpid = waitpid(pid, &status, WUNTRACED);
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
+    return 1;
+}
 char **dsh_split_line(char *line)
 {
     int buff_size = DSH_TOK_BUFSIZE;
